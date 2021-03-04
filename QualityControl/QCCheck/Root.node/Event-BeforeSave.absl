@@ -1,0 +1,197 @@
+/*
+	Add your SAP Business ByDesign scripting language implementation for:
+		Business Object: QCCheck
+		Node: Root
+		Event: BeforeSave 
+		
+	Note: 
+	  - To access the elements of the business object node, 
+	    use path expressions, for example, this.<element name>. 
+	  - To use code completion, press CTRL+J. 
+	  - The solution uses this script when:
+		- the instance of the business object is being saved.
+		- the instance of the business object is created from other sources like web services, preview screen, and so on.
+*/
+
+import ABSL;
+import AP.Common.GDT;
+import AP.LogisticsExecution.Global;
+
+//Retrieving Material Inspection based on UUID
+if(!this.MaterialInspectionUUID.IsInitial())
+{
+	var MaterialInspecobj = MaterialInspection.Retrieve(this.MaterialInspectionUUID);
+	if(MaterialInspecobj.IsSet())
+	{
+		this.MaterislInpectionID.content = MaterialInspecobj.ID.content;
+		this.site.content = MaterialInspecobj.SiteID.content;
+		this.MaterialID.content = MaterialInspecobj.MaterialKey.ProductID.content;
+		
+		if(MaterialInspecobj.BusinessTransactionDocumentReference.Count() > 0)
+		{
+			//Retrieve Warehouse or Inbound Delivery Items
+			var Warehousefilter = MaterialInspecobj.BusinessTransactionDocumentReference.Where(n=>n.BusinessTransactionDocumentReference.TypeCode == "120"); //Warehouse Order for Supplier Delivery Only
+			if(Warehousefilter.Count() > 0)
+			{
+				if(Warehousefilter.GetFirst().SiteLogisticsLot.IsSet()) //WareHouse Order object association
+				{
+					var sitelogslotobj = Warehousefilter.GetFirst().SiteLogisticsLot;
+					if(sitelogslotobj.MaterialOutput.Count() > 0)
+					{
+						var FilteredPdt = sitelogslotobj.MaterialOutput.Where(n=>n.ConfirmMainInventorySeparatingValues.MaterialKey.ProductID.content == MaterialInspecobj.MaterialKey.ProductID.content); //Only for Particular Inspected Material
+						
+						if(FilteredPdt.Count() > 0)
+						{
+							if(this.Lotitems.Count() > 0)
+							{
+								this.Lotitems.Delete();
+							}
+							var itemnum = 10; 
+							foreach(var matoutput in FilteredPdt)
+							{
+								var lotitmIns = this.Lotitems.Create();
+								lotitmIns.LineID = itemnum.ToString();				
+								lotitmIns.Identifiedstock.content = matoutput.ConfirmIdentifiedStockInventorySeparatingValues.IdentifiedStockKey.ID.content;
+								lotitmIns.Sourcelogisitcsarea = matoutput.ConfirmLogisticsAreaKey.ID;
+							
+								if(matoutput.MaterialOutputQuantity.Count() > 0)
+								{
+									lotitmIns.LotQty = matoutput.MaterialOutputQuantity.GetFirst().TotalConfirmedQuantity;
+								}
+
+								//Querying Inventory Bo to get On-Hand Quantity on basis of Source Logistics area
+								var Inventoryquery = Inventory.AggregationOverview.QueryByElements;
+								// 2. Selection
+								var selectionParams = Inventoryquery.CreateSelectionParams();
+								selectionParams.Add(Inventoryquery.MainInventorySeparatingValues.MaterialKey.ProductID.content, "I", "EQ", this.MaterialID.content);
+								selectionParams.Add(Inventoryquery.LogisticsAreaKey.ID, "I", "EQ", lotitmIns.Sourcelogisitcsarea);
+								selectionParams.Add(Inventoryquery.IdentifiedStockInventorySeparatingValues.IdentifiedStockKey.ID.content, "I", "EQ", lotitmIns.Identifiedstock.content);
+								// Result
+								 var resultData = Inventoryquery.ExecuteDataOnly(selectionParams);
+								 var cumulativeQty = 0;
+								 if(resultData.Count() > 0)
+								 {
+									foreach(var item in resultData)
+									{
+										//if(item.MainInventorySeparatingValues.InventoryStockStatusCode != "1") //Excluding Inspected Stock
+										//{
+											cumulativeQty = cumulativeQty + item.Quantity.content;
+										//}
+										 
+									}
+								 }
+
+								 lotitmIns.OnhandQty.content = cumulativeQty;
+								 lotitmIns.OnhandQty.unitCode = lotitmIns.LotQty.unitCode;
+							
+								itemnum = itemnum + 10;														
+							}
+						}
+					}
+				}
+			}
+
+			//Retrieveing from Production Lot
+			var ProductionLotfilter = MaterialInspecobj.BusinessTransactionDocumentReference.Where(n=>n.BusinessTransactionDocumentReference.TypeCode == "96"); //Final Production type or In-process production
+			if(ProductionLotfilter.Count() > 0)
+			{
+				if(ProductionLotfilter.GetFirst().ProductionLot.IsSet()) //Production lot node association
+				{
+					var productionlotobj = ProductionLotfilter.GetFirst().ProductionLot;
+
+					if(productionlotobj.MaterialOutput.Count() > 0)
+					{
+					var FilteredLotprdt = productionlotobj.MaterialOutput.Where(n=>n.ConfirmMainInventorySeparatingValues.MaterialKey.ProductID.content == MaterialInspecobj.MaterialKey.ProductID.content); //Only for Particular Inspected Material
+						
+						if(this.Lotitems.Count() > 0)
+							{
+								this.Lotitems.Delete();
+							}
+							var itemnum = 10; 
+							foreach(var matoutput in FilteredLotprdt)
+							{
+								var lotitmIns = this.Lotitems.Create();
+								lotitmIns.LineID = itemnum.ToString();				
+								lotitmIns.Identifiedstock.content = matoutput.ConfirmIdentifiedStockInventorySeparatingValues.IdentifiedStockKey.ID.content;
+								lotitmIns.Sourcelogisitcsarea = matoutput.ConfirmLogisticsAreaKey.ID;
+							
+								if(matoutput.MaterialOutputQuantity.Count() > 0)
+								{
+									lotitmIns.LotQty = matoutput.MaterialOutputQuantity.GetFirst().TotalConfirmedQuantity;
+								}
+
+								//Querying Inventory Bo to get On-Hand Quantity on basis of Source Logistics area
+								var Inventoryquery = Inventory.AggregationOverview.QueryByElements;
+								// 2. Selection
+								var selectionParams = Inventoryquery.CreateSelectionParams();
+								selectionParams.Add(Inventoryquery.MainInventorySeparatingValues.MaterialKey.ProductID.content, "I", "EQ", this.MaterialID.content);
+								selectionParams.Add(Inventoryquery.LogisticsAreaKey.ID, "I", "EQ", lotitmIns.Sourcelogisitcsarea);
+								selectionParams.Add(Inventoryquery.IdentifiedStockInventorySeparatingValues.IdentifiedStockKey.ID.content, "I", "EQ", lotitmIns.Identifiedstock.content);
+								// Result
+								 var resultData = Inventoryquery.ExecuteDataOnly(selectionParams);
+								 var cumulativeQty = 0;
+								 if(resultData.Count() > 0)
+								 {
+									foreach(var item in resultData)
+									{
+										//if(item.MainInventorySeparatingValues.InventoryStockStatusCode != "1") //Excluding Inspected Stock
+										//{
+											cumulativeQty = cumulativeQty + item.Quantity.content;
+										//}
+										 
+									}
+								 }
+
+								 lotitmIns.OnhandQty.content = cumulativeQty;
+								 lotitmIns.OnhandQty.unitCode = lotitmIns.LotQty.unitCode;
+							
+								itemnum = itemnum + 10;														
+							}
+					}
+				}
+			}
+		}
+
+
+		//Inspection Plan Node retrieving
+		if(MaterialInspecobj.RuleSnapshot.IsSet()) //Inspection Plan node
+		{
+			if(MaterialInspecobj.RuleSnapshot.RuleSnapshotAssignment.Count() > 0)
+			{
+				var Inspectionrulenode = MaterialInspecobj.RuleSnapshot.RuleSnapshotAssignment.GetFirst(); //Need to check if there are more inspection plan is to be created for this Particular Inpections
+					
+				if(Inspectionrulenode.InspectionRule.IsSet()) //InspectionRule Association
+				{
+					var InspectionruleUUID = Inspectionrulenode.InspectionRule.UUID; //Getting Inspection Plan UUID
+		
+					var QCTestObj = QCSetup.Retrieve(InspectionruleUUID);
+		
+					if(QCTestObj.IsSet())
+					{
+						if(this.Items.Count() >0)
+						{
+							this.Items.Delete();
+						}
+						foreach(var QCsetupParams in QCTestObj.Parameters)
+						{
+							var QCCheckItem = this.Items.Create();
+							QCCheckItem.LineID = QCsetupParams.LineID;
+							QCCheckItem.Inspectiontype = QCsetupParams.Inspectiontype;
+							QCCheckItem.ResultType = QCsetupParams.ResultType;
+							QCCheckItem.Numeric = QCsetupParams.Numeric;
+							QCCheckItem.AlphaNumeric = QCsetupParams.AlphaNumeric;
+							QCCheckItem.Minimum = QCsetupParams.Minimum;
+							QCCheckItem.Maximum = QCsetupParams.Maximum;
+							QCCheckItem.ParamterID = QCsetupParams.ParamterID;
+							QCCheckItem.ParameterName = QCsetupParams.ParameterName;
+						}
+					}
+				}
+		
+			}
+		}
+	}
+}
+
+
+

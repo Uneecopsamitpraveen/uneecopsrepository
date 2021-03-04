@@ -13,6 +13,7 @@ Following are the screenshots
 In the above screenshot, we have defined three parameters. P0001, P0002 & P0003. 
 
 
+![image](https://user-images.githubusercontent.com/79970797/109964717-0adcea00-7d14-11eb-8a9e-7a4ca1a34e4d.png)
 
 
 

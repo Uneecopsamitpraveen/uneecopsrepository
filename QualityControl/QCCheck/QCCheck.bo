@@ -1,1 +1,71 @@
 
+import AP.Common.GDT as apCommonGDT;
+
+[DeploymentUnit(ProductionAndSiteLogisticsExecution)] businessobject QCCheck {
+	
+	[AlternativeKey] element MaterialInspectionUUID : UUID;
+	[AlternativeKey] element MaterislInpectionID : BusinessTransactionDocumentID;
+
+	[Label("Document ID")] element DocumentID : ID;
+    [Label("Material ID")] element MaterialID : ProductInternalID;
+	[Label("Material Description")] element MaterialDes : LANGUAGEINDEPENDENT_EXTENDED_Text;
+	[Label("Material Detailed Description")] element MaterialDetailDes : LANGUAGEINDEPENDENT_ENCRYPTED_EXTENDED_Name;
+	[Label("Inbound Delivery")] element InboundDeliveryID : BusinessTransactionDocumentID;
+	[Label("Inbound Delivery Notification")] element ReferenceID : BusinessTransactionDocumentID;
+	[Label("Supplier")] element supplierid : BusinessPartnerInternalID;
+	[Label("Site")] element site : LocationID;
+	[Label("Inspection Type")] element Inspectiontype : InspectionTypeCode;
+							   element updatedby : SystemAdministrativeData;
+
+	
+
+	node Lotitems [0,n]
+	{
+		[Label("Line ID")] element LineID : ID;
+		[Label("Lot ID")] element Identifiedstock :IdentifiedStockID;
+		[Label("Lot Quantity")] element LotQty : Quantity;
+		[Label("Source Logistics Area")] element Sourcelogisitcsarea : LogisticsAreaID;
+		[Label("On-hand Quantity")] element OnhandQty : Quantity;
+
+		[Label("Sample Quantity")] element SampleQty : Quantity;
+		[Label("Approved Quantity")] element ApprovedQty : Quantity;
+		[Label("Reject Quantity")] element RejectQty : Quantity;
+
+		[Label("Sample Logistics area")] element SampleLogtsarea : LogisticsAreaID;
+		[Label("Approved Logistics area")] element ApprovedLogtsarea : LogisticsAreaID;
+		[Label("Reject Logistics area")] element RejectsiteLogtsarea : LogisticsAreaID;
+
+		[Label("Goods Movement ID")] element GoodsmovementID : BusinessTransactionDocumentID;
+									 element GoodsmovementUUID : UUID;
+		action GoodsMovement;
+
+	}
+	
+	node Items [0,n]
+	{
+		[Label("Line ID")] element LineID : BusinessTransactionDocumentItemID;
+		[Label("Inspection Type")] element Inspectiontype : InspectionTypeCode;
+		[Label("Paramter ID")] element ParamterID : ID;
+		[Label("Paramter Name")] element ParameterName : LANGUAGEINDEPENDENT_EXTENDED_Text;
+		[Label("Result Type")] element ResultType : ResultTypeCode;
+		[Label("Numeric")] element Numeric : LANGUAGEINDEPENDENT_EXTENDED_Text;
+		[Label("Alphanumeric")] element AlphaNumeric : LANGUAGEINDEPENDENT_EXTENDED_Text;
+		[Label("Minimum")] element Minimum : NumberID;
+		[Label("Maximum")] element Maximum : NumberID;
+		[Label("Tool ID")]  element ToolID : ID;
+		[Label("Tool Description")] element ToolDes : LANGUAGEINDEPENDENT_EXTENDED_Text;
+		[Label("Observation 1")] element Observation1 : LANGUAGEINDEPENDENT_EXTENDED_Text;
+		[Label("Observation 2")] element Observation2 : LANGUAGEINDEPENDENT_EXTENDED_Text;
+		[Label("Observation 3")] element Observation3 : LANGUAGEINDEPENDENT_EXTENDED_Text;
+		[Label("Observation 4")] element Observation4 : LANGUAGEINDEPENDENT_EXTENDED_Text;
+		[Label("Observation 5")] element Observation5 : LANGUAGEINDEPENDENT_EXTENDED_Text;
+		[Label("Result")] element resultobservetype : ResultObservetypeCode;
+
+	}
+
+	[Label("Note")]	element Note : LANGUAGEINDEPENDENT_ENCRYPTED_EXTENDED_Name;
+	[Label("Status")] element Status : StatusCode;
+
+	[DependentObject(AttachmentFolder)] node Attachment;
+
+}

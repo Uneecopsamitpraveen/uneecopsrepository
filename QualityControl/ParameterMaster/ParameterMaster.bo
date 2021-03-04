@@ -1,1 +1,9 @@
 
+import AP.Common.GDT as apCommonGDT;
+
+businessobject ParameterMaster {
+    [AlternativeKey] [Label("Parameter ID")] element ParameterID : ID;
+	 [Label("Parameter Name")] element ParameterName : LANGUAGEINDEPENDENT_EXTENDED_Text;
+	 [Label("Remarks")] element Remarks : LANGUAGEINDEPENDENT_EXTENDED_Text;
+
+}

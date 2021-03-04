@@ -1,0 +1,35 @@
+/*
+	Add your SAP Business ByDesign scripting language implementation for:
+		Business Object: QCSetup
+		Node: Parameters
+		Event: AfterModify 
+		
+	Note: 
+	  - To access the elements of the business object node, 
+	    use path expressions, for example, this.<element name>. 
+	  - To use code completion, press CTRL+J. 
+	  - The solution uses this script if:
+		- the value of any field in the node in which this script is contained is modified.
+		- the node itself is modified by another business object within the same solution.
+*/
+
+import ABSL;
+
+//Automatic filling of Lie ID
+var itemcount = this.ToRoot.Parameters.Count();
+var itemnum = itemcount * 10;
+if(this.LineID.IsInitial())
+{
+	this.LineID = itemnum.ToString();
+}
+
+//Seeting the Parameter name from Paramter master
+if(!this.ParamterID.IsInitial())
+{
+	var paramterobj = ParameterMaster.Retrieve(this.ParamterID);
+	if(paramterobj.IsSet())
+	{
+		this.ParameterName = paramterobj.ParameterName;
+	}
+}
+

@@ -1,1 +1,28 @@
 
+import AP.Common.GDT as apCommonGDT;
+
+businessobject QCSetup {
+
+	[AlternativeKey] [Label("Inspection Plan UUID")] element InspectionPlanUUID : UUID;
+	[Label("QC Test Setup ID")] element QCSetuptestID : ID;
+	[Label("Material ID")] element MaterialID : ProductInternalID;
+	[Label("Material UUID")] element MaterialUUID : UUID;
+					[Label("Material Description")] element MaterialDes : LANGUAGEINDEPENDENT_EXTENDED_Text;
+					[Label("Material Detailed Description")] element MaterialDetailDes : LANGUAGEINDEPENDENT_ENCRYPTED_EXTENDED_Name;
+
+	node Parameters [0,n]
+	{
+		[Label("Line ID")] element LineID : BusinessTransactionDocumentItemID;
+		[Label("Inspection Type")] element Inspectiontype : InspectionTypeCode;
+		[Label("Paramter ID")] element ParamterID : ID;
+		[Label("Paramter Name")] element ParameterName : LANGUAGEINDEPENDENT_EXTENDED_Text;
+		[Label("Result Type")] element ResultType : ResultTypeCode;
+		[Label("Numeric")] element Numeric : LANGUAGEINDEPENDENT_EXTENDED_Text;
+		[Label("Alphanumeric")] element AlphaNumeric : LANGUAGEINDEPENDENT_EXTENDED_Text;
+		[Label("Minimum")] element Minimum : NumberID;
+		[Label("Maximum")] element Maximum : NumberID;
+		[Label("Tool ID")]  element ToolID : ID;
+		[Label("Tool Description")] element ToolDes : LANGUAGEINDEPENDENT_EXTENDED_Text;
+	}
+
+}

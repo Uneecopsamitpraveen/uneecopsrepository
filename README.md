@@ -2,6 +2,8 @@
 
 SAP Bydesign Customized QC functionality
  
+
+
 Parameter Master – This screen is being used to define all the quality parameters of all products. These parameters will further be tagged with Materials after creation of Inspection Plan. Parameter master can be accessed by going on to Parameter Master Work Center. 
 Following are the screenshots 
  

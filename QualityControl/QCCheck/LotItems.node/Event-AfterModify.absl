@@ -1,0 +1,33 @@
+/*
+	Add your SAP Business ByDesign scripting language implementation for:
+		Business Object: QCCheck
+		Node: Lotitems
+		Event: AfterModify 
+		
+	Note: 
+	  - To access the elements of the business object node, 
+	    use path expressions, for example, this.<element name>. 
+	  - To use code completion, press CTRL+J. 
+	  - The solution uses this script if:
+		- the value of any field in the node in which this script is contained is modified.
+		- the node itself is modified by another business object within the same solution.
+*/
+
+import ABSL;
+import AP.LogisticsExecution.Global;
+
+if(!this.SampleQty.content.IsInitial())
+{
+	this.SampleQty.unitCode = this.LotQty.unitCode;
+}
+
+if(!this.ApprovedQty.content.IsInitial())
+{
+	this.ApprovedQty.unitCode = this.LotQty.unitCode;
+}
+
+if(!this.RejectQty.content.IsInitial())
+{
+	this.RejectQty.unitCode = this.LotQty.unitCode;
+}
+

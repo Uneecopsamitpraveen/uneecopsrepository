@@ -1,0 +1,59 @@
+/*
+	Add your SAP Business ByDesign scripting language implementation for:
+		Business Object: QCSetup
+		Node: Root
+		Event: BeforeSave 
+		
+	Note: 
+	  - To access the elements of the business object node, 
+	    use path expressions, for example, this.<element name>. 
+	  - To use code completion, press CTRL+J. 
+	  - The solution uses this script when:
+		- the instance of the business object is being saved.
+		- the instance of the business object is created from other sources like web services, preview screen, and so on.
+*/
+
+import ABSL;
+import AP.FO.ProductDataMaintenance.Global;
+
+//Retrieveing Std Material Master
+if(!this.MaterialID.IsInitial())
+{
+	var materialobj = Material.Retrieve(this.MaterialID);
+
+	if(materialobj.IsSet())
+	{
+		this.MaterialUUID.content = materialobj.UUID.content;
+		//Filling Material Description from Material
+		if(materialobj.Description.Count() > 0)
+		{
+			var materialobjdes = materialobj.Description.GetFirst();
+			this.MaterialDes = materialobjdes.Description.content;
+
+		}
+
+		//Filling Material Detailed Description from Material
+		if(materialobj.TextCollection.IsSet())
+		{
+			if(materialobj.TextCollection.Text.Count() > 0)
+			{
+				var materialtextcoll = materialobj.TextCollection.Text;
+				
+				if(materialtextcoll.TextContent.Count() > 0)
+				{
+					this.MaterialDetailDes = materialtextcoll.TextContent.GetFirst().Text.content;
+				}
+			}
+		}
+	}
+}
+
+//Auto Filling QC Setup ID
+if(this.QCSetuptestID.IsInitial())
+{
+	var qcsertupcount = QCSetup.QueryByElements.Count();
+	var qccount = qcsertupcount + 1;
+	this.QCSetuptestID = qccount.ToString();
+}
+
+

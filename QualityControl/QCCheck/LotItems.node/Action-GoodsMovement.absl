@@ -1,0 +1,210 @@
+/*
+	Add your SAP Business ByDesign scripting language implementation for:
+		Business Object: QCCheck
+		Node: Lotitems
+		Action: GoodsMovement 
+		
+	Note: 
+	  - To access the elements of the business object node, 
+	    use path expressions, for example, this.<element name>. 
+	  - To use code completion, press CTRL+J. 
+	   
+*/
+
+import ABSL;
+import AP.LogisticsExecution.Global;
+
+var GAC; 
+var GAC_ICI1;
+var GAC_ICI_QTY1;      //Approved
+var GAC_ICI2;
+var GAC_ICI_QTY2;
+
+var GAC_ICI3;
+var GAC_ICI_QTY3;      //Sample
+var GAC_ICI4;
+var GAC_ICI_QTY4;
+
+var GAC_ICI5;
+var GAC_ICI_QTY5;      //Rejected
+var GAC_ICI6;
+var GAC_ICI_QTY6;
+
+
+var GACRoot : elementsof GoodsAndActivityConfirmation;
+
+//Approved Node assignment
+var GACInventoryChangeItem1 : elementsof GoodsAndActivityConfirmation.InventoryChangeItem;
+var GACInventoryChangeItemInventoryItemChangeQuantity1 : elementsof GoodsAndActivityConfirmation.InventoryChangeItem.InventoryItemChangeQuantity;
+var GACInventoryChangeItem2 : elementsof GoodsAndActivityConfirmation.InventoryChangeItem;
+var GACInventoryChangeItemInventoryItemChangeQuantity2 : elementsof GoodsAndActivityConfirmation.InventoryChangeItem.InventoryItemChangeQuantity;
+
+//Sample Node assignment
+var GACInventoryChangeItem3 : elementsof GoodsAndActivityConfirmation.InventoryChangeItem;
+var GACInventoryChangeItemInventoryItemChangeQuantity3 : elementsof GoodsAndActivityConfirmation.InventoryChangeItem.InventoryItemChangeQuantity;
+var GACInventoryChangeItem4 : elementsof GoodsAndActivityConfirmation.InventoryChangeItem;
+var GACInventoryChangeItemInventoryItemChangeQuantity4 : elementsof GoodsAndActivityConfirmation.InventoryChangeItem.InventoryItemChangeQuantity;
+
+//Rejected Node assignment
+var GACInventoryChangeItem5 : elementsof GoodsAndActivityConfirmation.InventoryChangeItem;
+var GACInventoryChangeItemInventoryItemChangeQuantity5 : elementsof GoodsAndActivityConfirmation.InventoryChangeItem.InventoryItemChangeQuantity;
+var GACInventoryChangeItem6 : elementsof GoodsAndActivityConfirmation.InventoryChangeItem;
+var GACInventoryChangeItemInventoryItemChangeQuantity6 : elementsof GoodsAndActivityConfirmation.InventoryChangeItem.InventoryItemChangeQuantity;
+
+// Create GAC root with transaction date
+GACRoot.TransactionDateTime = Context.GetCurrentGlobalDateTime();
+
+GAC = GoodsAndActivityConfirmation.Create(GACRoot);
+this.GoodsmovementUUID.content = GAC.UUID.content;
+
+/*Approved Quantity and Approved Logistics Area Inventory Item node Creation*/
+
+// Create GAC InventoryItemChange node for original stock for material change
+if(!this.ApprovedQty.IsInitial() && !this.ApprovedQty.IsInitial())
+{
+	GACInventoryChangeItem1.TypeCode = "11";						                            // Material inventory change
+	GACInventoryChangeItem1.InventoryChangeReasonCode = "7";									// Change of stock
+	GACInventoryChangeItem1.InventoryMovementDirectionCode = "1";					     		// Goods issue for original stock
+	GACInventoryChangeItem1.InventoryItemChange.MainInventorySeparatingValues.MaterialKey.ProductID.content = this.ToParent.MaterialID.content; // Material
+	GACInventoryChangeItem1.InventoryLocation.LogisticsAreaKey.ID = this.Sourcelogisitcsarea;   // Logistics area
+	GACInventoryChangeItem1.InventoryLocation.LogisticsAreaKey.SiteID.content = this.ToParent.site.content;      // Site
+	if(!this.Identifiedstock.IsInitial())
+	{
+		GACInventoryChangeItem1.InventoryItemChange.IdentifiedStockInventorySeparatingValues.IdentifiedStockKey.ID.content = this.Identifiedstock.content; // Assign istock id
+	}
+	GACInventoryChangeItem1.InventoryItemChange.MainInventorySeparatingValues.OwnerPartyID = "1000000";  // Owner party
+	GACInventoryChangeItem1.TransferGroupID = "20";											    // Some unique number 
+
+	GAC_ICI1 = GAC.InventoryChangeItem.Create(GACInventoryChangeItem1);
+
+	//Create InventoryItemChangeQuantity node 
+	GACInventoryChangeItemInventoryItemChangeQuantity1.Quantity.content = this.ApprovedQty.content;					// quantity to be changed
+	GACInventoryChangeItemInventoryItemChangeQuantity1.Quantity.unitCode = this.ApprovedQty.unitCode;
+
+	GAC_ICI_QTY1 = GAC_ICI1.InventoryItemChangeQuantity.Create(GACInventoryChangeItemInventoryItemChangeQuantity1);
+
+	// Create GAC InventoryItemChange node for changed stock for material change
+	GACInventoryChangeItem2.TypeCode = "11";						                            // Material inventory change
+	GACInventoryChangeItem2.InventoryChangeReasonCode = "7";									// Change of stock
+	GACInventoryChangeItem2.InventoryMovementDirectionCode = "2";					     		// Goods receipt for changed stock
+	GACInventoryChangeItem2.InventoryItemChange.MainInventorySeparatingValues.MaterialKey.ProductID.content = this.ToParent.MaterialID.content; // Material to be scrapped
+	GACInventoryChangeItem2.InventoryLocation.LogisticsAreaKey.ID = this.ApprovedLogtsarea;	    // New logistics area
+	GACInventoryChangeItem2.InventoryLocation.LogisticsAreaKey.SiteID.content = this.ToParent.site.content;    // Site
+	if(!this.Identifiedstock.IsInitial())
+	{
+		GACInventoryChangeItem2.InventoryItemChange.IdentifiedStockInventorySeparatingValues.IdentifiedStockKey.ID.content = this.Identifiedstock.content; // Assign istock id
+	}
+	GACInventoryChangeItem2.InventoryItemChange.MainInventorySeparatingValues.OwnerPartyID = "1000000";  // Owner party
+	GACInventoryChangeItem2.TransferGroupID = "20";											    // Some unique number
+
+	GAC_ICI2 = GAC.InventoryChangeItem.Create(GACInventoryChangeItem2);
+
+	//Create InventoryItemChangeQuantity node for changed stock
+	GACInventoryChangeItemInventoryItemChangeQuantity2.Quantity.content  = this.ApprovedQty.content;				// quantity should match with 
+	GACInventoryChangeItemInventoryItemChangeQuantity2.Quantity.unitCode = this.ApprovedQty.unitCode;			// one in original stock ICI node
+
+	GAC_ICI_QTY2 = GAC_ICI2.InventoryItemChangeQuantity.Create(GACInventoryChangeItemInventoryItemChangeQuantity2);
+}
+
+
+/*Sample Quantity and Approved Logistics Area Inventory Item node Creation*/
+
+// Create GAC InventoryItemChange node for original stock for material change
+if(!this.SampleQty.IsInitial() && !this.SampleLogtsarea.IsInitial())
+{
+	GACInventoryChangeItem3.TypeCode = "11";						                            // Material inventory change
+	GACInventoryChangeItem3.InventoryChangeReasonCode = "7";									// Change of stock
+	GACInventoryChangeItem3.InventoryMovementDirectionCode = "1";					     		// Goods issue for original stock
+	GACInventoryChangeItem3.InventoryItemChange.MainInventorySeparatingValues.MaterialKey.ProductID.content = this.ToParent.MaterialID.content; // Material
+	if(!this.Identifiedstock.IsInitial())
+	{
+		GACInventoryChangeItem3.InventoryItemChange.IdentifiedStockInventorySeparatingValues.IdentifiedStockKey.ID.content = this.Identifiedstock.content; // Assign istock id
+	}
+	GACInventoryChangeItem3.InventoryLocation.LogisticsAreaKey.ID = this.Sourcelogisitcsarea;    // Logistics area
+	GACInventoryChangeItem3.InventoryLocation.LogisticsAreaKey.SiteID.content = this.ToParent.site.content;      // Site
+	GACInventoryChangeItem3.InventoryItemChange.MainInventorySeparatingValues.OwnerPartyID = "1000000";  // Owner party
+	GACInventoryChangeItem3.TransferGroupID = "40";											    // Some unique number 
+
+	GAC_ICI3 = GAC.InventoryChangeItem.Create(GACInventoryChangeItem3);
+
+	//Create InventoryItemChangeQuantity node 
+	GACInventoryChangeItemInventoryItemChangeQuantity3.Quantity.content = this.SampleQty.content;				// quantity to be changed
+	GACInventoryChangeItemInventoryItemChangeQuantity3.Quantity.unitCode = this.SampleQty.unitCode;
+
+	GAC_ICI_QTY3 = GAC_ICI3.InventoryItemChangeQuantity.Create(GACInventoryChangeItemInventoryItemChangeQuantity3);
+
+	// Create GAC InventoryItemChange node for changed stock for material change
+	GACInventoryChangeItem4.TypeCode = "11";						                            // Material inventory change
+	GACInventoryChangeItem4.InventoryChangeReasonCode = "7";									// Change of stock
+	GACInventoryChangeItem4.InventoryMovementDirectionCode = "2";					     		// Goods receipt for changed stock
+	GACInventoryChangeItem4.InventoryItemChange.MainInventorySeparatingValues.MaterialKey.ProductID.content = this.ToParent.MaterialID.content; // Material to be scrapped
+	GACInventoryChangeItem4.InventoryLocation.LogisticsAreaKey.ID = this.SampleLogtsarea;    // New logistics area
+	GACInventoryChangeItem4.InventoryLocation.LogisticsAreaKey.SiteID.content = this.ToParent.site.content;    // Site
+	if(!this.Identifiedstock.IsInitial())
+	{
+		GACInventoryChangeItem4.InventoryItemChange.IdentifiedStockInventorySeparatingValues.IdentifiedStockKey.ID.content = this.Identifiedstock.content; // Assign istock id
+	}
+	GACInventoryChangeItem4.InventoryItemChange.MainInventorySeparatingValues.OwnerPartyID = "1000000";  // Owner party
+	GACInventoryChangeItem4.TransferGroupID = "40";											    // Some unique number
+
+	GAC_ICI4 = GAC.InventoryChangeItem.Create(GACInventoryChangeItem4);
+
+	//Create InventoryItemChangeQuantity node for changed stock
+	GACInventoryChangeItemInventoryItemChangeQuantity4.Quantity.content  = this.SampleQty.content;				// quantity should match with 
+	GACInventoryChangeItemInventoryItemChangeQuantity4.Quantity.unitCode = this.SampleQty.unitCode;			// one in original stock ICI node
+
+	GAC_ICI_QTY4 = GAC_ICI4.InventoryItemChangeQuantity.Create(GACInventoryChangeItemInventoryItemChangeQuantity4);
+
+}
+
+
+/*Rejected Quantity and Approved Logistics Area Inventory Item node Creation*/
+
+// Create GAC InventoryItemChange node for original stock for material change
+if(!this.RejectQty.IsInitial() && !this.RejectsiteLogtsarea.IsInitial())
+{
+	GACInventoryChangeItem5.TypeCode = "11";						                            // Material inventory change
+	GACInventoryChangeItem5.InventoryChangeReasonCode = "7";									// Change of stock
+	GACInventoryChangeItem5.InventoryMovementDirectionCode = "1";					     		// Goods issue for original stock
+	GACInventoryChangeItem5.InventoryItemChange.MainInventorySeparatingValues.MaterialKey.ProductID.content = this.ToParent.MaterialID.content; // Material
+	if(!this.Identifiedstock.IsInitial())
+	{
+		GACInventoryChangeItem5.InventoryItemChange.IdentifiedStockInventorySeparatingValues.IdentifiedStockKey.ID.content = this.Identifiedstock.content; // Assign istock id
+	}
+	GACInventoryChangeItem5.InventoryLocation.LogisticsAreaKey.ID = this.Sourcelogisitcsarea;    // Logistics area
+	GACInventoryChangeItem5.InventoryLocation.LogisticsAreaKey.SiteID.content = this.ToParent.site.content;      // Site
+	GACInventoryChangeItem5.InventoryItemChange.MainInventorySeparatingValues.OwnerPartyID = "1000000";  // Owner party
+	GACInventoryChangeItem5.TransferGroupID = "60";											    // Some unique number 
+
+	GAC_ICI5 = GAC.InventoryChangeItem.Create(GACInventoryChangeItem5);
+
+	//Create InventoryItemChangeQuantity node 
+	GACInventoryChangeItemInventoryItemChangeQuantity5.Quantity.content = this.RejectQty.content;			// quantity to be changed
+	GACInventoryChangeItemInventoryItemChangeQuantity5.Quantity.unitCode = this.RejectQty.unitCode;
+
+	GAC_ICI_QTY5 = GAC_ICI5.InventoryItemChangeQuantity.Create(GACInventoryChangeItemInventoryItemChangeQuantity5);
+
+	// Create GAC InventoryItemChange node for changed stock for material change
+	GACInventoryChangeItem6.TypeCode = "11";						                            // Material inventory change
+	GACInventoryChangeItem6.InventoryChangeReasonCode = "7";									// Change of stock
+	GACInventoryChangeItem6.InventoryMovementDirectionCode = "2";					     		// Goods receipt for changed stock
+	GACInventoryChangeItem6.InventoryItemChange.MainInventorySeparatingValues.MaterialKey.ProductID.content = this.ToParent.MaterialID.content; // Material to be scrapped
+	GACInventoryChangeItem6.InventoryLocation.LogisticsAreaKey.ID = this.RejectsiteLogtsarea;    // New logistics area
+	GACInventoryChangeItem6.InventoryLocation.LogisticsAreaKey.SiteID.content = this.ToParent.site.content;    // Site
+	if(!this.Identifiedstock.IsInitial())
+	{
+		GACInventoryChangeItem6.InventoryItemChange.IdentifiedStockInventorySeparatingValues.IdentifiedStockKey.ID.content = this.Identifiedstock.content; // Assign istock id
+	}
+	GACInventoryChangeItem6.InventoryItemChange.MainInventorySeparatingValues.OwnerPartyID = "1000000";  // Owner party
+	GACInventoryChangeItem6.TransferGroupID = "60";											    // Some unique number
+
+	GAC_ICI6 = GAC.InventoryChangeItem.Create(GACInventoryChangeItem6);
+
+	//Create InventoryItemChangeQuantity node for changed stock
+	GACInventoryChangeItemInventoryItemChangeQuantity6.Quantity.content  = this.RejectQty.content;				// quantity should match with 
+	GACInventoryChangeItemInventoryItemChangeQuantity6.Quantity.unitCode = this.RejectQty.unitCode;			// one in original stock ICI node
+
+	GAC_ICI_QTY6 = GAC_ICI6.InventoryItemChangeQuantity.Create(GACInventoryChangeItemInventoryItemChangeQuantity6);
+
+}
+

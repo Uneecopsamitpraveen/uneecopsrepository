@@ -52,14 +52,17 @@ Parameter wise results in observation field & Parameter wise accept / Reject.
 
 
 After clicking on ‘Create Goods Movement’, system will create a Goods Movement and that will transfer the quantity from Receiving Logistics Area to Different Logistics Area. 
+
  ![image](https://user-images.githubusercontent.com/79970797/109965065-78891600-7d14-11eb-8468-3db70bc5b167.png)
 
  
-Goods Movement document can be opened by clicking on ‘Link’ button defined. 
+Goods Movement document can be opened by clicking on ‘Link’ button defined.
+
  ![image](https://user-images.githubusercontent.com/79970797/109965095-80e15100-7d14-11eb-83f8-124f12ad2569.png)
 
 
 Following is the Goods Movement which is created 
+
  ![image](https://user-images.githubusercontent.com/79970797/109965118-876fc880-7d14-11eb-8c90-a833dbb1f05b.png)
  
  Steps for Solution Replication into another tenant

@@ -13,7 +13,7 @@
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 **Use Case** 
-	Auxein Medical Private Limited is manufacturer of implants and they are using & testing the functionalities provided under this quality module. 
+	**Auxein Medical Private Limited** is manufacturer of implants and they are using & testing the functionalities provided under this quality module. 
 
 **Assumptions** 
 This extension will work for all the items managed by batch or without batch, but it will not support the items managed by serial no. 

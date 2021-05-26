@@ -4,10 +4,13 @@
 
 
 **Target Customers** 
+
 	**Manufacturing Business**: This will work for the manufacturing units as it covers Incoming Quality Check, In Process Quality Check, and Production Quality Check. 
 
 
 	**Trading Business**: As Incoming QC is also applicable in trading business, so this will also work in Trading Business. 
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 **Use Case** 
 	Auxein Medical Private Limited is manufacturer of implants and they are using & testing the functionalities provided under this quality module. 

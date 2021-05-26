@@ -1,6 +1,6 @@
 
 
-SAP Bydesign Customized QC functionality
+**SAP Bydesign Customized QC functionality**
  
 
 
@@ -89,5 +89,49 @@ Following is the Goods Movement which is created
 
    ![image](https://user-images.githubusercontent.com/79970797/119614062-76b68680-be1b-11eb-8a9d-f316f7828389.png)
    Implementation manager screen will show exact status of solution upload after processing of Activate.
+   
+   
+   
+   
+   
+   **SAP ByDesign Job Work Functionality**
+   
+   
+ If the PO Type is Job work then, OVS will be there to select the item that will be received in service type PO.
+   
+  ![image](https://user-images.githubusercontent.com/79970797/119615093-a44fff80-be1c-11eb-8986-79cbd713fc20.png)
+
+User will select FG item in Extension Field and PO will be of service type. 
+
+ ![image](https://user-images.githubusercontent.com/79970797/119615159-b7fb6600-be1c-11eb-98a1-7574c49f8704.png)
+ 
+ Work Centre with name Job Work Order. It will show list of all Job Work Orders
+ 
+ ![image](https://user-images.githubusercontent.com/79970797/119615210-c77aaf00-be1c-11eb-82f9-3ef57084333d.png)
+
+Job Work Order Will be created by selecting 
+1.	Supplier
+2.	Purchase Order No
+Based on Item Defined in Extension Field in PO, system will show the Raw Material defined in Production Model for this item. 
+Raw Material in bottom matrix will be transferred with Goods Movement to supplier logistics area. 
+Job Work Challan Print Out will be provided on this screen
+
+![image](https://user-images.githubusercontent.com/79970797/119615290-da8d7f00-be1c-11eb-8d1a-0b7646c82bd3.png)
+
+
+For receiving the material, Inbound Job Work work center will be used. 
+It will help user to create Production Proposal & Production Orders
+User will confirm task for Production Order 
+Inventory of FG will be updated after consumption of Raw Material. 
+
+![image](https://user-images.githubusercontent.com/79970797/119615336-e8db9b00-be1c-11eb-8b1d-ec2fc8807ccb.png)
+
+Goods & Service Confirmation will be created by user. 
+Supplier Invoice will be posted based on Goods & Service Confirmation. 
+
+
+   
+   
+   
 
 

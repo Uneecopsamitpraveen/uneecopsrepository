@@ -61,5 +61,26 @@ Goods Movement document can be opened by clicking on ‘Link’ button defined.
 
 Following is the Goods Movement which is created 
  ![image](https://user-images.githubusercontent.com/79970797/109965118-876fc880-7d14-11eb-8c90-a833dbb1f05b.png)
+ 
+ Steps for Solution Replication into another tenant
+ 1.	Click on Administrationswitch customer
+   ![image](https://user-images.githubusercontent.com/79970797/119613594-e415e780-be1a-11eb-8116-8a643ba45567.png)
+   
+ 2.	Click on Create Customer and assign Customer name and Customer ID.
+  ![image](https://user-images.githubusercontent.com/79970797/119613720-0a3b8780-be1b-11eb-9eb7-c514a8cb5427.png)
+
+3.	To moving a solution into another tenant, click on viewImplementation manager
+   ![image](https://user-images.githubusercontent.com/79970797/119613765-17587680-be1b-11eb-9933-d2b26f1292da.png)
+
+4.	Select Assemble and Download option from Implementation manager. This will download and assembled a Zip file for complete solution in your local PC.
+   ![image](https://user-images.githubusercontent.com/79970797/119613806-28a18300-be1b-11eb-941b-28b4bcc4c383.png)
+
+5.	Now, Logoff from local tenant and re-login into another tenant.
+6.	Click on ViewImplementation managerclick on Upload.
+7.	Upload the same zip file which you have downloaded on the local tenant.
+8.	Once it’s been uploaded, you need to activate the solution in implementation manager
+
+   ![image](https://user-images.githubusercontent.com/79970797/119614062-76b68680-be1b-11eb-8a9d-f316f7828389.png)
+   Implementation manager screen will show exact status of solution upload after processing of Activate.
 
 

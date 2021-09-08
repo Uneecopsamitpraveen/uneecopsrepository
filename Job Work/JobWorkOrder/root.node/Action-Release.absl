@@ -1,0 +1,22 @@
+/*
+	Add your SAP Business ByDesign scripting language implementation for:
+		Business Object: JobWorkOrder
+		Node: Root
+		Action: Release 
+		
+	Note: 
+	  - To access the elements of the business object node, 
+	    use path expressions, for example, this.<element name>. 
+	  - To use code completion, press CTRL+J. 
+	   
+*/
+
+import ABSL;
+
+if(this.status == "1") //In-Preparation
+{
+	this.status = "2"; //Released
+	this.readonly = true;
+	raise GoodsMov_err.Create("I", "Job Work Order has been Released");
+}
+

@@ -1,0 +1,93 @@
+/*
+	Add your SAP Business ByDesign scripting language implementation for:
+		Business Object: JobWorkOrder
+		Node: Root
+		Action: GoodsMovement 
+		
+	Note: 
+	  - To access the elements of the business object node, 
+	    use path expressions, for example, this.<element name>. 
+	  - To use code completion, press CTRL+J. 
+	   
+*/
+
+import ABSL;
+import AP.Common.GDT;
+import AP.FO.MOM.Global;
+
+//Declaration of SOAP Request
+var GoodsandActivityReq : GoodsMovementWS.DoGoodsMovementGoodsAndActivityConfirmation.Request;
+var GoodsandActivity_Body : GoodsMovementWS.DoGoodsMovementGoodsAndActivityConfirmation.Request.GoodsAndActivityConfirmationGoodsMovement;
+var GoodsandActivityConfirm : GoodsMovementWS.DoGoodsMovementGoodsAndActivityConfirmation.Request.GoodsAndActivityConfirmationGoodsMovement.GoodsAndActivityConfirmation;
+var InventorychangeItems : GoodsMovementWS.DoGoodsMovementGoodsAndActivityConfirmation.Request.GoodsAndActivityConfirmationGoodsMovement.GoodsAndActivityConfirmation.InventoryChangeItemGoodsMovement;
+
+GoodsandActivityConfirm.ExternalID.content = "EXT10";
+GoodsandActivityConfirm.SiteID.content = this.InputItems.GetFirst().SiteID.content;
+GoodsandActivityConfirm.TransactionDateTime = Context.GetCurrentSystemDateTime().ConvertToGlobalDateTime();
+
+foreach(var InputitmIns in this.InputItems)
+{
+	InventorychangeItems.ExternalItemID = InputitmIns.LineID.RemoveLeadingZeros();
+	if(!InputitmIns.IDStockID.IsInitial())
+	{
+		InventorychangeItems.IdentifiedStockID.content = InputitmIns.IDStockID.content.RemoveLeadingZeros();
+	}
+	InventorychangeItems.MaterialInternalID.content = InputitmIns.ProductID.content;
+
+	//var companyqry = Company.QueryByIDAndName;
+	//var selectionparams = companyqry.CreateSelectionParams();
+	//var companyresult = companyqry.Execute(selectionparams);
+	//if(companyresult.Count() > 0)
+	//{
+		InventorychangeItems.OwnerPartyInternalID.content = "1000000"; //companyresult.GetFirst().ID.RemoveLeadingZeros();
+	//}
+
+	InventorychangeItems.InventoryRestrictedUseIndicator = false;
+	//InventorychangeItems.InventoryStockStatusCode="";
+	InventorychangeItems.SourceLogisticsAreaID = InputitmIns.LogisticsareaID;
+	InventorychangeItems.TargetLogisticsAreaID = this.SupplierLogisticsid;
+	InventorychangeItems.InventoryItemChangeQuantity.Quantity.content = InputitmIns.Quantity.content;
+	InventorychangeItems.InventoryItemChangeQuantity.Quantity.unitCode = InputitmIns.Quantity.unitCode;
+	//InventorychangeItems.InventoryItemChangeQuantity.QuantityTypeCode.content = InputitmIns.Quantity.unitCode;
+	GoodsandActivityConfirm.InventoryChangeItemGoodsMovement.Add(InventorychangeItems);
+}
+
+GoodsandActivityReq.GoodsAndActivityConfirmationGoodsMovement.GoodsAndActivityConfirmation.Add(GoodsandActivityConfirm);
+
+var response = GoodsMovementWS.DoGoodsMovementGoodsAndActivityConfirmation(GoodsandActivityReq, "", "GoodsMovementcs");
+
+var GACResponse = response.GoodsAndActivityConfoirmationGoodsMovementResponse.GACDetails;
+if(GACResponse.Count() > 0)
+{
+	this.GACID.content = GACResponse.GetFirst().GACID.content;
+	var uuid = Library::UUID.ParseFromString(GACResponse.GetFirst().GACUUID.content);
+	this.GACUUID.content = uuid;
+
+	raise GoodsMov_err.Create("S", "Goods Movement " +this.GACID.content+" was created successfully");
+}
+else
+{
+	//Communication Fault
+	if(response.CommunicationFault.MaximumLogItemSeverityCode == "3")
+	{
+		foreach(var error in response.CommunicationFault.Item)
+		{
+			if(error.SeverityCode == "3")
+			{
+				raise GoodsMov_err.Create("E",error.Note);
+			}
+		}
+	}
+                
+	else
+	{	//SOAP Reponse error while creating Goods Movement
+		foreach (var error in response.GoodsAndActivityConfoirmationGoodsMovementResponse.Log.Item)
+		{
+			if (error.SeverityCode == "3")
+			{
+                raise GoodsMov_err.Create("E",error.Note);
+			}
+		}
+
+	}	
+}

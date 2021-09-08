@@ -1,0 +1,99 @@
+/*
+	Add your SAP Business ByDesign scripting language implementation for:
+		Business Object: JobWorkOrder
+		Node: Root
+		Action: Run 
+		
+	Note: 
+	  - To access the elements of the business object node, 
+	    use path expressions, for example, this.<element name>. 
+	  - To use code completion, press CTRL+J. 
+	   
+*/
+
+import ABSL;
+import AP.PC.ProductionModelProcessing.Global;
+import AP.FO.ProductDataMaintenance.Global;
+import AP.LogisticsExecution.Global;
+import AP.FO.LogisticsArea.Global;
+import AP.FO.IdentifiedStock.Global;
+
+if(this.POItems.Count() > 0)
+{	
+	var selectedpoitems = this.POItems.Where(n=>n.selected == true); //Only the seleted POItems to be executed
+	foreach(var SelpoitmIns in selectedpoitems)
+	{
+		if(!SelpoitmIns.InstanceInd)
+		{
+			//Product Model BOM maintained Node to get BOM Details
+			var productionmodelobj = ProductionModel.Retrieve(SelpoitmIns.ProductionModel);
+			if(productionmodelobj.IntegratedView.IsSet())
+			{
+				var IntegratedviewIns = productionmodelobj.IntegratedView;
+				var BOMID = IntegratedviewIns.ProductionBillOfMaterialVariantKey.BillOfMaterialID.content;
+
+				if(!SelpoitmIns.ProductID.IsInitial())
+				{	
+					var ParentBomQry = ProductionBillOfMaterial.Variant.QueryByElements;
+					var selectionParams = ParentBomQry.CreateSelectionParams();
+					selectionParams.Add(ParentBomQry.MaterialKey.ProductID.content, "I", "EQ", SelpoitmIns.ProductID.content);
+					selectionParams.Add(ParentBomQry.BillOfMaterialVariantKey.BillOfMaterialVariantID, "I", "EQ", IntegratedviewIns.ProductionBillOfMaterialVariantKey.BillOfMaterialVariantID);
+					selectionParams.Add(ParentBomQry.BillOfMaterialID.content, "I", "EQ", IntegratedviewIns.ProductionBillOfMaterialVariantKey.BillOfMaterialID.content);
+					var ParentBomresultData = ParentBomQry.Execute(selectionParams);
+					if(ParentBomresultData.Count() > 0)
+					{
+						if(ParentBomresultData.AssignedItemGroupItemChangeState.Count() > 0)
+						{
+							var lineid = 10;
+							foreach(var ParentbomchildassigneditmIns in ParentBomresultData.AssignedItemGroupItemChangeState)
+							{
+								var ChildBomQry = ProductionBillOfMaterial.Variant.QueryByElements;
+								var selectionParams1 = ChildBomQry.CreateSelectionParams();
+								selectionParams1.Add(ChildBomQry.MaterialKey.ProductID.content, "I", "EQ",ParentbomchildassigneditmIns.MaterialKey.ProductID.content);
+								var ChildBomresultData = ChildBomQry.Execute(selectionParams1);
+								if(ChildBomresultData.Count() > 0)
+								{
+									var bomchilditemIns = ChildBomresultData.GetFirst(); //Only one instance available 
+
+									//Creating an Input item Instance
+									var InputItemIns = this.InputItems.Create();								
+									InputItemIns.ProductID.content = bomchilditemIns.MaterialKey.ProductID.content;
+									InputItemIns.Quantity.content = bomchilditemIns.Quantity.content * SelpoitmIns.Quantity.content;
+									InputItemIns.Quantity.unitCode = bomchilditemIns.Quantity.unitCode;
+									if(!InputItemIns.ProductID.IsInitial()) 
+									{
+										var materialQry = Material.QueryByDescription;
+										var selecparams = materialQry.CreateSelectionParams();	
+										selecparams.Add(materialQry.ProductID.content, "I", "EQ", InputItemIns.ProductID.content);
+										var materialRes = materialQry.Execute(selecparams);
+										if(materialRes.Count() > 0)
+										{
+											if(materialRes.Description.Count() > 0)
+											{
+												var materialobjdes = materialRes.Description.GetFirst();
+												InputItemIns.ProductDes = materialobjdes.Description.content;
+											}
+											if(materialRes.Common.Count() > 0)
+											{
+												var materialcommon = materialRes.Common.GetFirst();
+												if(!materialcommon.IdentifiedStockTypeCode.IsInitial()) //If Product was Batch maintained
+												{
+													InputItemIns.Is_Idstock = true;
+												}
+											}
+										}	
+									}
+
+								SelpoitmIns.InstanceInd = true;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+
+

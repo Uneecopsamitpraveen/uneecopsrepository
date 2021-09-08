@@ -1,0 +1,64 @@
+/*
+	Add your SAP Business ByDesign scripting language implementation for:
+		Business Object: JobWorkOrder
+		Node: Root
+		Action: ProposeLogistics 
+		
+	Note: 
+	  - To access the elements of the business object node, 
+	    use path expressions, for example, this.<element name>. 
+	  - To use code completion, press CTRL+J. 
+	   
+*/
+
+import ABSL;
+import AP.FO.ProductDataMaintenance.Global;
+import AP.LogisticsExecution.Global;
+import AP.FO.LogisticsArea.Global;
+import AP.FO.IdentifiedStock.Global;
+
+foreach(var InputItemIns in this.InputItems)
+{
+	
+	//Querying Inventory Bo to get On-Hand Quantity on basis of Source Logistics area
+	var Inventoryquery = Inventory.AggregationOverview.QueryByElements;
+	// 2. Selection
+	var selectionParams2 = Inventoryquery.CreateSelectionParams();
+	selectionParams2.Add(Inventoryquery.MainInventorySeparatingValues.MaterialKey.ProductID.content, "I", "EQ", InputItemIns.ProductID.content);
+	selectionParams2.Add(Inventoryquery.LogisticsAreaKey.ID, "E", "EQ", this.SupplierLogisticsid);
+	//selectionParams2.Add(Inventoryquery.IdentifiedStockInventorySeparatingValues.IdentifiedStockKey.ID.content, "I", "EQ", InputItemIns.IDStockID.content);
+	// Result
+	var resultData = Inventoryquery.ExecuteDataOnly(selectionParams2);
+	var availableqty = resultData.Where(n=>n.Quantity.content >= InputItemIns.Quantity.content);
+	if(availableqty.Count() > 0)
+	{
+		InputItemIns.OnHandQty.content = availableqty.GetFirst().Quantity.content;
+		InputItemIns.OnHandQty.unitCode = availableqty.GetFirst().Quantity.unitCode;
+
+		var logisticsuuid = availableqty.GetFirst().LogisticsAreaUUID;
+		var logisticsareaobj = LogisticsArea.Retrieve(logisticsuuid);
+		if(logisticsareaobj.IsSet())
+		{
+			InputItemIns.LogisticsareaID = logisticsareaobj.ID;
+			InputItemIns.SiteID.content = logisticsareaobj.SiteID.content;
+		}
+
+		if(InputItemIns.Is_Idstock)
+		{
+			var Idstockuuid = availableqty.GetFirst().IdentifiedStockInventorySeparatingValues.IdentifiedStockUUID;
+			var Idstockobj = IdentifiedStock.Retrieve(Idstockuuid);
+			if(Idstockobj.IsSet())
+			{
+				if(InputItemIns.IDStockID.IsInitial())
+				{
+					InputItemIns.IDStockID.content = Idstockobj.ID.content;
+				}
+			}
+		}
+	}
+	else
+	{
+		raise Inventory_err.Create("E", "Item: "+InputItemIns.LineID.RemoveLeadingZeros()+"--> Inventory in logistics area not available");
+		raise Inventory_err.Create("E", "Item: "+InputItemIns.LineID.RemoveLeadingZeros()+" The available Quantity in this line Insuffient to fulfill the required amount");
+	}
+}

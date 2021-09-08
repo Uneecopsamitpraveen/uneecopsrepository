@@ -1,1 +1,28 @@
 
+import AP.Common.GDT as apCommonGDT;
+
+businessobject InboundJobWork raises PlanningProp_err{
+	message PlanningProp_err text "&1" : LANGUAGEINDEPENDENT_EXTENDED_Text;
+
+			[Label("Supplier")]	element Supplierid : BusinessPartnerInternalID; 
+			[Label("Supplier Name")]  element Suppliername : LANGUAGEINDEPENDENT_EXTENDED_Text;
+			[Label("Job Work Order")] element Jobworkorderid : ID;
+			[Label("PO No")] element Purchaseorderno : BusinessTransactionDocumentID;
+[AlternativeKey][Label("Inbound Job Work")] element InboundJobWorkNo : ID;
+
+			node Items[0,n]
+			{
+				[Label("Product")] element productid : ProductID;
+				[Label("Description")] element productDes : LANGUAGEINDEPENDENT_EXTENDED_Text;
+				[Label("Quantity")] element Quantity : Quantity;
+				[Label("Production Model")] element ProductionModel : ProductionModelID;
+				[Label("Production Proposal")] element ProductionProposalID : BusinessTransactionDocumentID;
+				[Label("Production Order")] element ProductionOrderID : BusinessTransactionDocumentID;
+											element ProductionOrderUUID : UUID;
+											element SequenceNo : NumberValue;
+											element SiteID : LocationID;
+			}
+			
+			action CreateProductionProposal;
+
+}

@@ -1,1 +1,14 @@
 
+import AP.Common.GDT;
+import AP.Purchasing.Global;
+
+[Extension] businessobject AP.Purchasing.Global:PurchaseOrder {
+
+		 [Label("Purchase Order Type")] element PurchaseorderType : POTypeCode;
+   		node Item {
+									element visibileInd : Indicator;
+			[Label("O/P Product")] element outputproductid : ProductInternalID;
+			[Label("O/P Product Description")] element outputproductDes : MediumText;
+			[Label("O/P Quantity")] element OutproductQty : Quantity;
+   	    }
+}

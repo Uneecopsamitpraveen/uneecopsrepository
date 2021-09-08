@@ -1,0 +1,88 @@
+/*
+	Add your SAP Business ByDesign scripting language implementation for:
+		Business Object: InboundJobWork
+		Node: Root
+		Action: CreateProductionProposal 
+		
+	Note: 
+	  - To access the elements of the business object node, 
+	    use path expressions, for example, this.<element name>. 
+	  - To use code completion, press CTRL+J. 
+	   
+*/
+
+import ABSL;
+import AP.Common.GDT;
+import BASIS.Global;
+import AP.SupplyChainControl.Global;
+
+//Declaration of SOAP request elements structure
+var PlanningProsReq : Productionproposalws.CreateBundle.Request;
+var CreatePlanning_Body : Productionproposalws.CreateBundle.Request.CreateProductionProposal;
+var CreateProdPlan : Productionproposalws.CreateBundle.Request.CreateProductionProposal.CreateProductionPlanningOrder;
+foreach(var itm in this.Items)
+{
+	if(!itm.productid.IsInitial() && itm.ProductionProposalID.IsInitial())
+	{
+		
+		CreateProdPlan.SequenceNumber = itm.SequenceNo;
+		CreateProdPlan.SupplyPlanningAreaID.content = "P1100";
+		CreateProdPlan.MaterialID.content = itm.productid.content;
+		CreateProdPlan.MaterialAvailabilityDateTime.content = Context.GetCurrentSystemDateTime().ConvertToGlobalDateTime();
+		CreateProdPlan.Quantity.content = itm.Quantity.content;
+		CreateProdPlan.Quantity.unitCode = itm.Quantity.unitCode;
+		CreateProdPlan.QuantityTypeCode.content = itm.Quantity.unitCode;
+
+		PlanningProsReq.CreateProductionProposal.CreateProductionPlanningOrder.Add(CreateProdPlan);
+		
+	}
+}
+
+var response = Productionproposalws.CreateBundle(PlanningProsReq, "", "Productionproposalcs");
+var communfault = response.CommunicationFault;
+
+var ProductionPropes = response.CreateProductionPlanningOrderResponse;
+if(ProductionPropes.ProductionProposalsCreated.Count() > 0)
+{
+	foreach (var LogresIns in ProductionPropes.ProductionProposalsCreated)
+	{
+		var itemfilter = this.Items.Where(n=>n.SequenceNo == LogresIns.SequenceNumber);
+		if(itemfilter.Count() > 0)
+		{
+			itemfilter.GetFirst().ProductionProposalID.content = LogresIns.ProductionProposalID.content;
+			
+			if(!LogresIns.ProductionProposalID.IsInitial())
+			{
+				raise PlanningProp_err.Create("S", "Production Proposal "+itemfilter.GetFirst().ProductionProposalID.content+ " was successfully created"); 
+			}
+			
+		}
+	}
+
+	//SOAP Reponse error while creating Production Proposal	
+	if(response.CreateProductionPlanningOrderResponse.Log.Item.Count() > 0)
+	{
+		foreach (var error in response.CreateProductionPlanningOrderResponse.Log.Item)
+		{
+			//if (error.SeverityCode == "3")
+			//{
+				raise PlanningProp_err.Create("E",error.Note);
+			//}
+		}
+	}
+}
+
+else
+{
+	//Communication Fault	
+	if(response.CommunicationFault.MaximumLogItemSeverityCode == "3")
+	{
+		foreach(var error in response.CommunicationFault.Item)
+		{
+			//if(error.SeverityCode == "3")
+			//{
+				raise PlanningProp_err.Create("E",error.Note);
+			//}
+		}
+	}	               
+}

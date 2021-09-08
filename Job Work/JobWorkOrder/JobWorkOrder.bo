@@ -1,1 +1,52 @@
 
+import AP.Common.GDT as apCommonGDT;
+
+businessobject JobWorkOrder raises GoodsMov_err,Inventory_err{
+
+	message GoodsMov_err text "&1" : LANGUAGEINDEPENDENT_EXTENDED_Text;
+	message Inventory_err text "&1" : LANGUAGEINDEPENDENT_EXTENDED_Text;
+    [AlternativeKey][Label("Job Work Order")] element Jobworkorderid : ID;
+					[Label("Supplier")]	      element Supplierid : BusinessPartnerInternalID;
+					[Label("Supplier Name")]  element Suppliername : LANGUAGEINDEPENDENT_EXTENDED_Text;
+					[Label("Company")]		   element Company : OrganisationalCentreID;
+					[Label("Supplier Logistics ID")] element SupplierLogisticsid : LogisticsAreaID;
+					[Label("PO No")] element Purchaseorderno : BusinessTransactionDocumentID;
+					[Label("Job Work Date")]	 element Jobworkdate : Date;
+					[Label("Status")]	        element status : StatusCode;
+
+			node POItems [0,n]
+			{
+				[Label("Selected")] element selected : Indicator;
+				[Label("Product ID")] element ProductID : ProductID;
+				[Label("Product Description")] element ProductDes : LANGUAGEINDEPENDENT_EXTENDED_Text;
+				[Label("Service Description")] element ServiceDes : LANGUAGEINDEPENDENT_EXTENDED_Text;
+				[Label("Quantity")] element Quantity : Quantity;
+				[Label("Production Model")] element ProductionModel : ProductionModelID;
+				[Label("UOM")] element UOM : MeasureUnitCode;
+								element InstanceInd : Indicator;
+								element SiteID : LocationID;
+
+			}
+			node InputItems [0,n] 
+			{
+									element LineID : ID;
+			[Label("Product ID")] element ProductID : ProductID;
+			[Label("Product Description")] element ProductDes : LANGUAGEINDEPENDENT_EXTENDED_Text;
+			[Label("Quantity")] element Quantity : Quantity;
+			[Label("On-Hand Quantity")] element OnHandQty : Quantity;
+			[Label("Logistics Area ID")] element LogisticsareaID : LogisticsAreaID;
+			[Label("Identified Stock ID")] element IDStockID : IdentifiedStockID; 
+										   element SiteID : LocationID;
+											element Is_Idstock : Indicator;
+			}		
+			
+			[Label("GoodsMovement ID")] element GACID : BusinessTransactionDocumentID;
+			 element GACUUID : UUID;
+			 element readonly : Indicator;
+
+
+		action GoodsMovement;
+		action Run;
+		action Release;
+		action ProposeLogistics;
+}

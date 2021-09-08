@@ -1,1 +1,14 @@
 
+import AP.Common.GDT;
+import AP.SupplyChainControl.Global;
+
+[Extension] businessobject AP.SupplyChainControl.Global:ProductionPlanningOrder {
+ 
+       [Scenario(ProductionPropToProductionOrder)] element Z_ProductionProposalID : BusinessTransactionDocumentID;
+
+    
+   		node MaterialOutput {
+   	    } 
+     
+  
+}

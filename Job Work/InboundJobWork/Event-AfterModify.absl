@@ -1,0 +1,58 @@
+/*
+	Add your SAP Business ByDesign scripting language implementation for:
+		Business Object: InboundJobWork
+		Node: Root
+		Event: AfterModify 
+		
+	Note: 
+	  - To access the elements of the business object node, 
+	    use path expressions, for example, this.<element name>. 
+	  - To use code completion, press CTRL+J. 
+	  - The solution uses this script if:
+		- the value of any field in the node in which this script is contained is modified.
+		- the node itself is modified by another business object within the same solution.
+*/
+
+import ABSL;
+
+if(this.InboundJobWorkNo.IsInitial())
+{
+	var inboundjobqrrcount = InboundJobWork.QueryByElements.Count();
+	var inboundnumnew = inboundjobqrrcount + 1;
+	this.InboundJobWorkNo = inboundnumnew.ToString();
+}
+
+if(!this.Jobworkorderid.IsInitial())
+{
+	var jobworkorderqry = JobWorkOrder.QueryByElements;
+	var selectionparams = jobworkorderqry.CreateSelectionParams();
+	selectionparams.Add(jobworkorderqry.Jobworkorderid, "I", "EQ", this.Jobworkorderid);
+	var JobworkorderRes = jobworkorderqry.Execute(selectionparams);
+	if(JobworkorderRes.Count() > 0)
+	{
+		var jobworkorderobj = JobworkorderRes.GetFirst();
+		this.Supplierid = jobworkorderobj.Supplierid;
+		this.Suppliername = jobworkorderobj.Suppliername;
+		this.Purchaseorderno.content = jobworkorderobj.Purchaseorderno.content;
+		var seqno = 1;
+
+		if(this.Items.Count() > 0)
+		{
+			this.Items.Delete();
+		}
+		foreach(var JobItm in jobworkorderobj.POItems)
+		{
+			var ItemIns = this.Items.Create();
+			ItemIns.productid.content = JobItm.ProductID.content;
+			ItemIns.productDes = JobItm.ProductDes;
+			ItemIns.Quantity.content = JobItm.Quantity.content;
+			ItemIns.Quantity.unitCode = JobItm.Quantity.unitCode;
+			ItemIns.ProductionModel.content = JobItm.ProductionModel.content;
+			ItemIns.SequenceNo = seqno;
+			seqno = seqno + 1;
+
+		}
+	}
+
+}
+

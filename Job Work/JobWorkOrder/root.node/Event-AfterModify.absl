@@ -1,0 +1,101 @@
+/*
+	Add your SAP Business ByDesign scripting language implementation for:
+		Business Object: JobWorkOrder
+		Node: Root
+		Event: AfterModify 
+		
+	Note: 
+	  - To access the elements of the business object node, 
+	    use path expressions, for example, this.<element name>. 
+	  - To use code completion, press CTRL+J. 
+	  - The solution uses this script if:
+		- the value of any field in the node in which this script is contained is modified.
+		- the node itself is modified by another business object within the same solution.
+*/
+
+import ABSL;
+import AP.FO.BusinessPartner.Global;
+import AP.Common.GDT;
+import AP.Purchasing.Global;
+import AP.PC.ProductionModelProcessing.Global;
+import AP.FO.LogisticsArea.Global;
+import AP.Common.Global;
+
+if(this.status.IsInitial())
+{
+	this.status = "1";  //InPreparation
+}
+
+var Supplierqry = Supplier.Retrieve(this.Supplierid);
+if(Supplierqry.IsSet())
+{
+	if(Supplierqry.CurrentCommon.IsSet())
+	{
+		var suppliercurrcommon = Supplierqry.CurrentCommon;
+		this.Suppliername = suppliercurrcommon.SortingFormattedName;
+	}
+}
+
+if(this.Jobworkdate.IsInitial())
+{
+	this.Jobworkdate =  Context.GetCurrentSystemDate();
+}
+
+if(this.Jobworkorderid.IsInitial())
+{
+	var jobid = JobWorkOrder.QueryByElements.Count() + 1;
+	this.Jobworkorderid = jobid.ToString();
+}
+
+//Quering Purchase order and Creating a PO line items
+if(this.POItems.Count() == 0)
+{
+	var purchaseorder = PurchaseOrder.Retrieve(this.Purchaseorderno);
+	if(purchaseorder.IsSet())
+	{
+		if(purchaseorder.Item.Count() > 0)
+		{
+			if(this.POItems.Count() > 0)
+			{
+				this.POItems.Delete();
+			}
+			foreach(var poitm in purchaseorder.Item)
+			{
+				var PoItemIns = this.POItems.Create();
+				PoItemIns.ProductID.content = poitm.outputproductid.content;
+				PoItemIns.ProductDes = poitm.outputproductDes;
+				if(poitm.ItemProduct.IsSet())
+				{
+					var PoItemPdt = poitm.ItemProduct;
+					if(PoItemPdt.ProductKey.ProductTypeCode == "2") //Service Item
+					{
+						PoItemIns.ServiceDes = PoItemPdt.ToParent.Description.content;
+					}
+				}
+				if(poitm.ShipToItemLocation.IsSet())
+				{
+					var PoShiptoItm = poitm.ShipToItemLocation;
+					PoItemIns.SiteID.content = PoShiptoItm.LocationID.content;
+				}
+				PoItemIns.Quantity.content = poitm.OutproductQty.content;
+				PoItemIns.Quantity.unitCode = poitm.OutproductQty.unitCode;
+				PoItemIns.UOM = poitm.OutproductQty.unitCode;
+
+				var Productionmodelquery = ProductionModel.QueryByElements;
+				var selecparamsitm = Productionmodelquery.CreateSelectionParams();
+				selecparamsitm.Add(Productionmodelquery.MaterialKey.ProductID.content, "I", "EQ", PoItemIns.ProductID.content);
+				var PMResultData = Productionmodelquery.Execute(selecparamsitm);
+				if(PMResultData.Count() > 0)
+				{
+					var LatestPM = PMResultData.GetLast(); //Getting Latest PM from the result
+					PoItemIns.ProductionModel.content = LatestPM.ID.content;
+				}
+
+			}
+		
+		}
+	}
+}
+
+
+

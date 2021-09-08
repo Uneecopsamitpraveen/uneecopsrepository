@@ -1,1 +1,11 @@
 
+import AP.Common.GDT as apCommonGDT;
+
+businessobject PurchaseOrderShadow {
+
+	[AlternativeKey] element PurchaseorderID : BusinessTransactionDocumentID;
+					 element SupplierID : BusinessPartnerInternalID;
+					 element Status : PurchaseOrderLifeCycleStatusCode;
+					 element JobWorkType : POTypeCode;
+
+}
